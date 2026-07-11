@@ -210,7 +210,10 @@ window.addEventListener('pagehide', () => {
 
 /* ---------- play flow ---------- */
 
-function renderMatch() {
+let lastSeenRound = null;
+let lastSeenLabel = '';
+
+function renderMatch(skipRoundCheck) {
   const st = rebuildBracket();
   bracket = st;
 
@@ -224,7 +227,23 @@ function renderMatch() {
     return;
   }
 
+  // A finished round deserves a moment: celebrate and offer a break.
+  if (!skipRoundCheck && lastSeenRound !== null && st.roundNumber > lastSeenRound) {
+    flushQueue(true);
+    currentPair = st;
+    $('roundend-title').textContent = lastSeenLabel;
+    $('roundend-detail').textContent = 'You have made ' + st.picksDone.toLocaleString('en-US') +
+      ' picks. Next up: ' + roundLabel(st.round.length) + ', ' + st.matches.toLocaleString('en-US') +
+      ' picks. Keep going, or come back later; everything is saved.';
+    lastSeenRound = st.roundNumber;
+    lastSeenLabel = roundLabel(st.round.length);
+    show('roundend');
+    return;
+  }
+
   currentPair = st;
+  lastSeenRound = st.roundNumber;
+  lastSeenLabel = roundLabel(st.round.length);
   $('round-name').textContent = roundLabel(st.round.length);
   $('round-progress').textContent = 'Pick ' + (st.matchIndex + 1) + ' of ' + st.matches;
   const overall = st.picksDone / (st.picksDone + st.remaining);
@@ -440,6 +459,9 @@ function init() {
   $('card-b').addEventListener('click', e => { if (!e.target.closest('.zoom-btn')) pick('b'); });
   document.querySelectorAll('.zoom-btn').forEach(b =>
     b.addEventListener('click', e => { e.stopPropagation(); openLightbox(b.dataset.side); }));
+
+  $('roundend-continue').addEventListener('click', () => renderMatch(true));
+  $('roundend-save').addEventListener('click', saveForLater);
 
   $('back-btn').addEventListener('click', goBack);
   $('both-btn').addEventListener('click', keepBoth);
