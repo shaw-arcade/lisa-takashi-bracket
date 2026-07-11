@@ -154,6 +154,7 @@ function rebuildBracket() {
 /* ---------- sync ---------- */
 
 let syncTimer = null;
+let syncInFlight = false;
 
 function queueVote(winner, loser, roundNumber, pickIndex) {
   // 5th element ties the queue entry to a pick so Back can retract unsent votes.
@@ -162,7 +163,9 @@ function queueVote(winner, loser, roundNumber, pickIndex) {
 
 function flushQueue(force) {
   if (!CONFIG.WEBHOOK_URL || !voter || voter.queue.length === 0) return;
+  if (syncInFlight) return; // never double-send a batch that is already on the wire
   if (!force && voter.queue.length < CONFIG.SYNC_EVERY) return;
+  syncInFlight = true;
   const batch = voter.queue.slice();
   const payload = JSON.stringify({
     type: 'votes',
@@ -179,7 +182,10 @@ function flushQueue(force) {
       saveVoter();
     })
     .catch(() => { /* keep queue, retry on next flush */ })
-    .finally(() => setTimeout(() => dot.classList.remove('on'), 600));
+    .finally(() => {
+      syncInFlight = false;
+      setTimeout(() => dot.classList.remove('on'), 600);
+    });
 }
 
 function sendCompletion() {

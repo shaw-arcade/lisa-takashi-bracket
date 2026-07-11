@@ -144,7 +144,8 @@ function render(data) {
     const cell = document.createElement('div');
     cell.className = 'cell' + (i < TOP_N ? ' in70' : '');
     cell.innerHTML = '<img loading="lazy" src="thumbs/' + p.id + '.jpg" alt="Frame ' + p.id + '">' +
-      '<div class="meta"><span class="rank">#' + (i + 1) + '</span><span>' + p.wins + ' wins</span></div>';
+      '<div class="meta"><span class="rank">#' + (i + 1) + '</span><span>' + p.wins + ' wins</span></div>' +
+      '<div class="meta frame-id">Frame ' + p.id + '</div>';
     grid.appendChild(cell);
   });
 
@@ -155,7 +156,7 @@ function render(data) {
     const tr = document.createElement('tr');
     tr.innerHTML = '<td>' + escapeHtml(v.name) + (v.done ? ' &#127942;' : '') + '</td>' +
       '<td>' + v.picks.toLocaleString() + '</td>' +
-      '<td><div class="bar"><i style="width:' + pct + '%"></i></div></td>' +
+      '<td><div class="progress-cell"><div class="bar"><i style="width:' + pct + '%"></i></div><span class="pct">' + pct + '%</span></div></td>' +
       '<td>' + (v.champion ? 'Frame ' + escapeHtml(String(v.champion)) : '-') + '</td>';
     tbody.appendChild(tr);
   });

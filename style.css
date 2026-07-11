@@ -363,6 +363,10 @@ input[type="text"]:focus { border-color: var(--gold); }
 .cell img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; display: block; }
 .cell .meta { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--soft-ink); padding: 5px 2px 1px; }
 .cell .rank { color: var(--gold); font-weight: 500; }
+.cell .frame-id { justify-content: center; color: var(--ink); letter-spacing: 0.08em; padding-top: 0; }
+
+.progress-cell { display: flex; align-items: center; gap: 8px; }
+.progress-cell .pct { font-size: 12px; color: var(--soft-ink); min-width: 34px; }
 .cell.in70 { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold); }
 
 .cutline {
