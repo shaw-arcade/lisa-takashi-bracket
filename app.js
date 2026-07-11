@@ -2,7 +2,7 @@
 
 const CONFIG = {
   PASSCODE: 'TOKYO2026',
-  WEBHOOK_URL: '', // Google Apps Script web app URL; empty = offline mode (picks still save locally)
+  WEBHOOK_URL: 'https://script.google.com/macros/s/AKfycbwaAA1_bELjqyufdM4oqq7qMjVl76hqmKltkzp0y6P8nbXBi9cPlY7tjt7FfoPULOK8CA/exec',
   SYNC_EVERY: 20,  // send queued votes every N picks
 };
 
