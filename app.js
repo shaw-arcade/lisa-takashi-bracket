@@ -93,7 +93,9 @@ function saveVoter() {
    per-round budget so rounds always shrink; it is unavailable at 4 photos or fewer. */
 
 function bothBudget(roundLength, matches) {
-  return roundLength <= 4 ? 0 : Math.max(3, Math.round(matches * 0.1));
+  if (roundLength <= 4) return 0;
+  // Never allow every match in a round to be a keep-both, so rounds always shrink.
+  return Math.min(matches - 1, Math.max(2, Math.round(matches * 0.1)));
 }
 
 function rebuildBracket() {
