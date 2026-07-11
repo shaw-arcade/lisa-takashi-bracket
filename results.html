@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Results &middot; Lisa &amp; Takashi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<section id="gate" class="screen active">
+  <div class="card">
+    <div class="monogram">L <span class="amp">&amp;</span> T</div>
+    <h2 class="serif">The Judges' Chamber</h2>
+    <div class="rule"></div>
+    <p class="date">RESULTS &middot; PRIVATE</p>
+    <div class="gate-form">
+      <input id="passcode" type="text" placeholder="Owner password" autocomplete="off" autocapitalize="characters">
+      <button id="gate-btn" class="btn">Enter</button>
+      <p id="gate-error" class="error hidden">That password is not quite right.</p>
+    </div>
+  </div>
+</section>
+
+<section id="results" class="screen">
+  <div class="results-wrap">
+    <div class="results-head">
+      <div class="monogram">L <span class="amp">&amp;</span> T</div>
+      <h2 class="serif">The Great Photo Playoff</h2>
+      <div class="rule gold"></div>
+      <p class="date" id="updated">LOADING RESULTS</p>
+      <div class="stat-row">
+        <div class="stat"><div class="num" id="stat-votes">0</div><div class="lbl">Total Votes</div></div>
+        <div class="stat"><div class="num" id="stat-voters">0</div><div class="lbl">Voters</div></div>
+        <div class="stat"><div class="num" id="stat-photos">0</div><div class="lbl">Photos Judged</div></div>
+        <div class="stat"><div class="num" id="stat-complete">0</div><div class="lbl">Finished Brackets</div></div>
+      </div>
+    </div>
+
+    <div id="champion-block" class="results-head hidden">
+      <p class="kicker">OVERALL CHAMPION</p>
+      <div class="champion-frame"><img id="overall-champ" alt="Overall champion"></div>
+      <p class="lede small" id="champ-caption"></p>
+    </div>
+
+    <h3 class="section-title">Every Photo, Ranked</h3>
+    <p class="lede small" style="text-align:center">Gold border marks the top 70, the album cut. Numbers show total matchup wins and how many voters have seen the photo.</p>
+    <div class="grid" id="grid"></div>
+
+    <h3 class="section-title">Your Voters</h3>
+    <table class="voters-table">
+      <thead><tr><th>Name</th><th>Picks Made</th><th>Progress</th><th>Their Champion</th></tr></thead>
+      <tbody id="voters-body"></tbody>
+    </table>
+
+    <div id="compare-block" class="hidden">
+      <h3 class="section-title">Lisa vs Takashi</h3>
+      <div class="compare" id="compare"></div>
+      <p class="lede small" style="text-align:center" id="agreement"></p>
+    </div>
+
+    <h3 class="section-title">Top 70 for the Album</h3>
+    <p class="lede small" style="text-align:center">Frame numbers in rank order. Copy this list into your 37 Frames favorites.</p>
+    <textarea class="export-box" id="export" readonly></textarea>
+  </div>
+</section>
+
+<script>
+const OWNER_PASSCODE = 'ALBUM70';
+const WEBHOOK_URL = ''; // same Apps Script URL as the app
+const TOP_N = 70;
+
+const $ = id => document.getElementById(id);
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(id).classList.add('active');
+}
+
+function tryGate() {
+  const v = $('passcode').value.trim().toUpperCase().replace(/\s+/g, '');
+  if (v === OWNER_PASSCODE) { show('results'); loadResults(); }
+  else $('gate-error').classList.remove('hidden');
+}
+$('gate-btn').addEventListener('click', tryGate);
+$('passcode').addEventListener('keydown', e => { if (e.key === 'Enter') tryGate(); });
+
+async function loadResults() {
+  if (!WEBHOOK_URL) {
+    $('updated').textContent = 'WEBHOOK NOT CONFIGURED YET';
+    return;
+  }
+  let data;
+  try {
+    const r = await fetch(WEBHOOK_URL + '?action=results');
+    data = await r.json();
+  } catch (e) {
+    $('updated').textContent = 'COULD NOT LOAD RESULTS';
+    return;
+  }
+  render(data);
+}
+
+function render(data) {
+  // data: { photos: {id: {wins, seen}}, voters: {name: {picks, total, champion, done}}, totalVotes }
+  const photos = Object.entries(data.photos || {})
+    .map(([id, s]) => ({ id, wins: s.wins || 0, seen: s.seen || 0 }))
+    .sort((a, b) => b.wins - a.wins || b.seen - a.seen || a.id.localeCompare(b.id));
+
+  const voters = Object.entries(data.voters || {})
+    .map(([name, v]) => ({ name, ...v }))
+    .sort((a, b) => b.picks - a.picks);
+
+  $('updated').textContent = 'UPDATED ' + new Date().toLocaleString().toUpperCase();
+  $('stat-votes').textContent = (data.totalVotes || 0).toLocaleString();
+  $('stat-voters').textContent = voters.length;
+  $('stat-photos').textContent = photos.filter(p => p.seen > 0).length.toLocaleString();
+  $('stat-complete').textContent = voters.filter(v => v.done).length;
+
+  if (photos.length && photos[0].wins > 0) {
+    $('champion-block').classList.remove('hidden');
+    $('overall-champ').src = 'photos/' + photos[0].id + '.jpg';
+    $('champ-caption').textContent = 'Frame ' + photos[0].id + ' with ' + photos[0].wins +
+      ' matchup wins across ' + photos[0].seen + ' appearances.';
+  }
+
+  const grid = $('grid');
+  grid.innerHTML = '';
+  photos.forEach((p, i) => {
+    if (i === TOP_N) {
+      const cut = document.createElement('div');
+      cut.className = 'cutline';
+      cut.innerHTML = 'The Album Cut &middot; Top ' + TOP_N + ' Above';
+      grid.appendChild(cut);
+    }
+    const cell = document.createElement('div');
+    cell.className = 'cell' + (i < TOP_N ? ' in70' : '');
+    cell.innerHTML = '<img loading="lazy" src="thumbs/' + p.id + '.jpg" alt="Frame ' + p.id + '">' +
+      '<div class="meta"><span class="rank">#' + (i + 1) + '</span><span>' + p.wins + ' wins &middot; ' + p.seen + '</span></div>';
+    grid.appendChild(cell);
+  });
+
+  const tbody = $('voters-body');
+  tbody.innerHTML = '';
+  voters.forEach(v => {
+    const pct = v.total ? Math.min(100, Math.round((v.picks / (v.total - 1)) * 100)) : 0;
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + escapeHtml(v.name) + (v.done ? ' &#127942;' : '') + '</td>' +
+      '<td>' + v.picks.toLocaleString() + '</td>' +
+      '<td><div class="bar"><i style="width:' + pct + '%"></i></div></td>' +
+      '<td>' + (v.champion ? 'Frame ' + escapeHtml(String(v.champion)) : '-') + '</td>';
+    tbody.appendChild(tr);
+  });
+
+  // Couple compare: Lisa and Takashi side by side if both exist.
+  const lisa = voters.find(v => v.name.toLowerCase() === 'lisa');
+  const takashi = voters.find(v => v.name.toLowerCase() === 'takashi');
+  if (lisa && takashi && (lisa.champion || takashi.champion)) {
+    $('compare-block').classList.remove('hidden');
+    const box = $('compare');
+    box.innerHTML = '';
+    [lisa, takashi].forEach(v => {
+      const side = document.createElement('div');
+      side.className = 'side';
+      side.innerHTML = '<div class="who serif">' + escapeHtml(v.name) + '</div>' +
+        (v.champion
+          ? '<img src="photos/' + v.champion + '.jpg" alt=""><p class="lede small">Champion: Frame ' + v.champion + '</p>'
+          : '<p class="lede small">Still picking (' + v.picks.toLocaleString() + ' picks in)</p>');
+      box.appendChild(side);
+    });
+    if (lisa.champion && takashi.champion) {
+      $('agreement').textContent = lisa.champion === takashi.champion
+        ? 'You two picked the very same champion. Meant to be.'
+        : 'Two different champions. Good thing the album has room for both.';
+    }
+  }
+
+  $('export').value = photos.slice(0, TOP_N).map((p, i) => (i + 1) + '. Frame ' + p.id + ' (' + p.wins + ' wins)').join('\n');
+}
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+</script>
+</body>
+</html>

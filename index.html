@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Lisa &amp; Takashi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- GATE -->
+<section id="gate" class="screen active">
+  <div class="gate-photo"><img src="photos/1391.jpg" alt=""></div>
+  <div class="gate-panel">
+    <div class="monogram">L <span class="amp">&amp;</span> T</div>
+    <h1 class="names">Lisa &amp; Takashi</h1>
+    <div class="rule"></div>
+    <p class="date">MAY 13, 2026 &middot; TOKYO</p>
+    <div class="gate-form">
+      <input id="passcode" type="text" placeholder="Enter password" autocomplete="off" autocapitalize="characters">
+      <button id="gate-btn" class="btn">Open</button>
+      <p id="gate-error" class="error hidden">That password is not quite right.</p>
+    </div>
+  </div>
+</section>
+
+<!-- WELCOME -->
+<section id="welcome" class="screen">
+  <div class="card">
+    <div class="monogram">L <span class="amp">&amp;</span> T</div>
+    <h2 class="serif">The Great Photo Playoff</h2>
+    <div class="rule"></div>
+    <p class="lede">Our photographers gave us nearly 1,400 beautiful photos, and we can only put 70 in our album. So we are settling it the only fair way: a tournament.</p>
+    <p class="lede">Two photos face off. Tap the one you love more. The winner moves on, round after round, until one photo takes the crown.</p>
+    <p class="lede small">Your progress saves automatically on this device, so you can leave and come back anytime. Every pick you make counts, even if you do not finish.</p>
+    <div class="gate-form">
+      <input id="voter-name" type="text" placeholder="Your first name" autocomplete="given-name" maxlength="24">
+      <button id="start-btn" class="btn">Begin the Bracket</button>
+      <p id="name-error" class="error hidden">Please tell us your name first.</p>
+    </div>
+  </div>
+</section>
+
+<!-- RESUME -->
+<section id="resume" class="screen">
+  <div class="card">
+    <div class="monogram">L <span class="amp">&amp;</span> T</div>
+    <h2 class="serif">Welcome back, <span id="resume-name"></span></h2>
+    <div class="rule"></div>
+    <p class="lede" id="resume-detail"></p>
+    <div class="gate-form">
+      <button id="resume-btn" class="btn">Keep Picking</button>
+      <button id="restart-btn" class="btn ghost">I am someone else</button>
+    </div>
+  </div>
+</section>
+
+<!-- PLAY -->
+<section id="play" class="screen">
+  <header class="play-header">
+    <div class="round-name serif" id="round-name">Round of 1,400</div>
+    <div class="round-progress" id="round-progress">Pick 1 of 700</div>
+    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+  </header>
+  <div class="arena" id="arena">
+    <div class="contender" id="card-a">
+      <img id="img-a" alt="Photo A" draggable="false">
+      <button class="zoom-btn" data-side="a" aria-label="View larger">&#8599;</button>
+    </div>
+    <div class="vs serif">vs</div>
+    <div class="contender" id="card-b">
+      <img id="img-b" alt="Photo B" draggable="false">
+      <button class="zoom-btn" data-side="b" aria-label="View larger">&#8599;</button>
+    </div>
+  </div>
+  <p class="hint">Tap the photo you love more</p>
+</section>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" class="lightbox hidden">
+  <img id="lightbox-img" alt="">
+  <div class="lightbox-actions">
+    <button id="lightbox-pick" class="btn">Choose This Photo</button>
+    <button id="lightbox-close" class="btn ghost">Back</button>
+  </div>
+</div>
+
+<!-- CHAMPION -->
+<section id="champion" class="screen">
+  <canvas id="confetti"></canvas>
+  <div class="card champion-card">
+    <p class="kicker">YOUR CHAMPION</p>
+    <div class="champion-frame"><img id="champion-img" alt="Champion photo"></div>
+    <h2 class="serif" id="champion-title">The One</h2>
+    <div class="rule gold"></div>
+    <button id="finish-btn" class="btn">Finish</button>
+  </div>
+</section>
+
+<!-- THANK YOU -->
+<section id="thanks" class="screen">
+  <div class="card">
+    <div class="monogram">L <span class="amp">&amp;</span> T</div>
+    <h2 class="serif">Thank you so much</h2>
+    <div class="rule"></div>
+    <p class="lede">We did not send this to everyone. You are a special person to us, and we wanted to share all of our photos with you.</p>
+    <p class="lede">Your picks will help us choose the 70 photos that make it into our wedding album. That means a piece of you is in it too.</p>
+    <p class="serif signoff">With love,<br>Lisa &amp; Takashi</p>
+  </div>
+</section>
+
+<div id="sync-dot" class="sync-dot" title="Saving picks"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
