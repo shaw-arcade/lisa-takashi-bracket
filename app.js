@@ -88,7 +88,13 @@ function saveVoter() {
 /* ---------- bracket engine ----------
    Deterministic: round 1 order = seededShuffle(manifest, hash(name)).
    Each round: pairs (0,1),(2,3)... ; odd count -> last photo gets a bye.
-   picks[] stores winner ids in global pick order; replaying picks rebuilds everything. */
+   picks[] stores winner ids (or 'BOTH' for a keep-both) in global pick order;
+   replaying picks rebuilds everything. Keep-both advances both photos and has a
+   per-round budget so rounds always shrink; it is unavailable at 4 photos or fewer. */
+
+function bothBudget(roundLength, matches) {
+  return roundLength <= 4 ? 0 : Math.max(3, Math.round(matches * 0.1));
+}
 
 function rebuildBracket() {
   const seed = hashString(voter.name.trim().toLowerCase());
@@ -100,43 +106,58 @@ function rebuildBracket() {
   while (round.length > 1) {
     const matches = Math.floor(round.length / 2);
     const bye = (round.length % 2 === 1) ? round[round.length - 1] : null;
+    const budget = bothBudget(round.length, matches);
+    let bothUsed = 0;
     const winners = [];
     let m = 0;
     for (; m < matches; m++) {
       if (pickCursor >= picks.length) break;
       const a = round[m * 2], b = round[m * 2 + 1];
       const w = picks[pickCursor];
-      if (w !== a && w !== b) {
+      if (w === 'BOTH') {
+        winners.push(a, b);
+        bothUsed++;
+      } else if (w === a || w === b) {
+        winners.push(w);
+      } else {
         // Corrupted history relative to manifest; truncate and resume from here.
         voter.picks = picks.slice(0, pickCursor);
         return rebuildBracket();
       }
-      winners.push(w);
       pickCursor++;
     }
     if (m < matches) {
-      // Current match is m of this round.
+      // Current match is m of this round. Estimate remaining picks assuming
+      // every future match is decisive.
+      let remaining = matches - m;
+      let len = winners.length + (matches - m) + (bye ? 1 : 0);
+      while (len > 1) {
+        remaining += Math.floor(len / 2);
+        len = Math.ceil(len / 2);
+      }
       return {
         round, roundNumber, matches, bye,
         matchIndex: m,
         a: round[m * 2], b: round[m * 2 + 1],
-        totalPicks: manifest.length - 1,
         picksDone: picks.length,
+        remaining,
+        bothLeft: Math.max(0, budget - bothUsed),
       };
     }
     round = bye ? winners.concat([bye]) : winners;
     roundNumber++;
   }
 
-  return { champion: round[0], totalPicks: manifest.length - 1, picksDone: picks.length };
+  return { champion: round[0], picksDone: picks.length, remaining: 0 };
 }
 
 /* ---------- sync ---------- */
 
 let syncTimer = null;
 
-function queueVote(winner, loser, roundNumber) {
-  voter.queue.push([winner, loser, roundNumber, Date.now()]);
+function queueVote(winner, loser, roundNumber, pickIndex) {
+  // 5th element ties the queue entry to a pick so Back can retract unsent votes.
+  voter.queue.push([winner, loser, roundNumber, Date.now(), pickIndex]);
 }
 
 function flushQueue(force) {
@@ -206,7 +227,18 @@ function renderMatch() {
   currentPair = st;
   $('round-name').textContent = roundLabel(st.round.length);
   $('round-progress').textContent = 'Pick ' + (st.matchIndex + 1) + ' of ' + st.matches;
-  $('progress-fill').style.width = ((st.picksDone / st.totalPicks) * 100).toFixed(2) + '%';
+  const overall = st.picksDone / (st.picksDone + st.remaining);
+  $('progress-fill').style.width = (overall * 100).toFixed(2) + '%';
+
+  $('back-btn').disabled = st.picksDone === 0;
+  const bothBtn = $('both-btn');
+  if (st.round.length <= 4) {
+    bothBtn.style.display = 'none';
+  } else {
+    bothBtn.style.display = '';
+    bothBtn.disabled = st.bothLeft === 0;
+    bothBtn.textContent = st.bothLeft === 0 ? 'No Keep Boths Left This Round' : 'Keep Both';
+  }
 
   const cardA = $('card-a'), cardB = $('card-b');
   cardA.classList.remove('picked', 'dimmed');
@@ -234,12 +266,53 @@ function pick(side) {
   $(side === 'a' ? 'card-a' : 'card-b').classList.add('picked');
   $(side === 'a' ? 'card-b' : 'card-a').classList.add('dimmed');
 
+  const idx = voter.picks.length;
   voter.picks.push(winner);
-  queueVote(winner, loser, currentPair.roundNumber);
+  queueVote(winner, loser, currentPair.roundNumber, idx);
   saveVoter();
   flushQueue(false);
 
   setTimeout(() => { pickLock = false; renderMatch(); }, 220);
+}
+
+function keepBoth() {
+  if (pickLock || !currentPair || currentPair.bothLeft <= 0) return;
+  pickLock = true;
+  $('card-a').classList.add('picked');
+  $('card-b').classList.add('picked');
+
+  const idx = voter.picks.length;
+  voter.picks.push('BOTH');
+  // Both photos advance and both get credit for a win.
+  queueVote(currentPair.a, currentPair.b, currentPair.roundNumber, idx);
+  queueVote(currentPair.b, currentPair.a, currentPair.roundNumber, idx);
+  saveVoter();
+  flushQueue(false);
+
+  setTimeout(() => { pickLock = false; renderMatch(); }, 220);
+}
+
+function goBack() {
+  if (pickLock || !voter || voter.picks.length === 0) return;
+  const idx = voter.picks.length - 1;
+  voter.picks.pop();
+  // Retract matching votes still waiting in the queue (already-synced ones are
+  // a negligible drop in the ocean of 1,400 picks).
+  while (voter.queue.length && voter.queue[voter.queue.length - 1][4] === idx) {
+    voter.queue.pop();
+  }
+  saveVoter();
+  renderMatch();
+}
+
+function saveForLater() {
+  flushQueue(true);
+  const st = rebuildBracket();
+  $('resume-name').textContent = voter.name;
+  $('resume-detail').textContent = 'You have made ' + voter.picks.length.toLocaleString('en-US') +
+    ' picks, about ' + st.remaining.toLocaleString('en-US') +
+    ' to go. Everything is saved on this device. Open the same link on this device anytime and your bracket will be waiting.';
+  show('resume');
 }
 
 /* ---------- champion + confetti ---------- */
@@ -327,11 +400,10 @@ function routeAfterGate() {
     const v = loadVoter(last);
     if (v.picks.length > 0 && !v.done) {
       voter = v;
+      const st = rebuildBracket();
       $('resume-name').textContent = v.name;
-      const total = manifest.length - 1;
-      const pct = Math.round((v.picks.length / total) * 100);
       $('resume-detail').textContent = 'You have made ' + v.picks.length.toLocaleString('en-US') +
-        ' of ' + total.toLocaleString('en-US') + ' picks (' + pct + '%). Your bracket is waiting right where you left it.';
+        ' picks, about ' + st.remaining.toLocaleString('en-US') + ' to go. Your bracket is waiting right where you left it.';
       show('resume');
       return;
     }
@@ -368,6 +440,10 @@ function init() {
   $('card-b').addEventListener('click', e => { if (!e.target.closest('.zoom-btn')) pick('b'); });
   document.querySelectorAll('.zoom-btn').forEach(b =>
     b.addEventListener('click', e => { e.stopPropagation(); openLightbox(b.dataset.side); }));
+
+  $('back-btn').addEventListener('click', goBack);
+  $('both-btn').addEventListener('click', keepBoth);
+  $('save-btn').addEventListener('click', saveForLater);
 
   $('lightbox-close').addEventListener('click', closeLightbox);
   $('lightbox-pick').addEventListener('click', () => { const s = zoomSide; closeLightbox(); pick(s); });

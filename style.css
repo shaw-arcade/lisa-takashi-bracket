@@ -245,8 +245,37 @@ input[type="text"]:focus { border-color: var(--gold); }
   letter-spacing: 0.26em;
   text-transform: uppercase;
   color: var(--soft-ink);
-  padding: 8px 0 calc(14px + env(safe-area-inset-bottom));
+  padding: 8px 0 4px;
 }
+
+.play-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 2px 12px calc(12px + env(safe-area-inset-bottom));
+}
+
+.mini-btn {
+  font-family: var(--sans);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  background: transparent;
+  border: 1px solid #ddd7cb;
+  color: var(--soft-ink);
+  padding: 9px 14px;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s, opacity 0.2s;
+}
+.mini-btn:hover { color: var(--ink); border-color: var(--ink); }
+.mini-btn.gold { color: var(--gold); border-color: var(--gold-light); }
+.mini-btn.gold:hover { color: #8f7a41; border-color: var(--gold); }
+.mini-btn:disabled { opacity: 0.35; cursor: default; }
+.mini-btn:disabled:hover { color: var(--soft-ink); border-color: #ddd7cb; }
+.mini-btn.gold:disabled:hover { color: var(--gold); border-color: var(--gold-light); }
 
 @media (max-width: 720px) {
   .arena { flex-direction: column; gap: 8px; padding: 6px 14px; }

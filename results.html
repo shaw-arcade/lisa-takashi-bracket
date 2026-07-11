@@ -48,7 +48,7 @@
     </div>
 
     <h3 class="section-title">Every Photo, Ranked</h3>
-    <p class="lede small" style="text-align:center">Gold border marks the top 70, the album cut. Numbers show total matchup wins and how many voters have seen the photo.</p>
+    <p class="lede small" style="text-align:center">Gold border marks the top 70, the album cut. Numbers show total matchup wins across all voters.</p>
     <div class="grid" id="grid"></div>
 
     <h3 class="section-title">Your Voters</h3>
@@ -126,8 +126,7 @@ function render(data) {
   if (photos.length && photos[0].wins > 0) {
     $('champion-block').classList.remove('hidden');
     $('overall-champ').src = 'photos/' + photos[0].id + '.jpg';
-    $('champ-caption').textContent = 'Frame ' + photos[0].id + ' with ' + photos[0].wins +
-      ' matchup wins across ' + photos[0].seen + ' appearances.';
+    $('champ-caption').textContent = 'Frame ' + photos[0].id + ' with ' + photos[0].wins + ' matchup wins.';
   }
 
   const grid = $('grid');
@@ -142,7 +141,7 @@ function render(data) {
     const cell = document.createElement('div');
     cell.className = 'cell' + (i < TOP_N ? ' in70' : '');
     cell.innerHTML = '<img loading="lazy" src="thumbs/' + p.id + '.jpg" alt="Frame ' + p.id + '">' +
-      '<div class="meta"><span class="rank">#' + (i + 1) + '</span><span>' + p.wins + ' wins &middot; ' + p.seen + '</span></div>';
+      '<div class="meta"><span class="rank">#' + (i + 1) + '</span><span>' + p.wins + ' wins</span></div>';
     grid.appendChild(cell);
   });
 
