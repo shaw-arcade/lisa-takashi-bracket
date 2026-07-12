@@ -130,9 +130,45 @@ function firstRound(seed, order) {
   return round;
 }
 
+/* Chronological migration: voters who started before the day-order update keep
+   every match they already played, but everything after their saved pivot
+   (voter.migration = {round, matchIndex}) is reordered to follow the wedding day. */
+
+function sortChrono(list) {
+  return list.slice().sort((a, b) => Number(a) - Number(b));
+}
+
+function hybridize(list, keepMatches) {
+  // Keep the first keepMatches matches as-is (already played), sort the rest
+  // of the round chronologically by each pair's earlier frame.
+  const matches = Math.floor(list.length / 2);
+  if (keepMatches >= matches) return list;
+  const bye = (list.length % 2 === 1) ? list[list.length - 1] : null;
+  const out = list.slice(0, keepMatches * 2);
+  const rest = [];
+  for (let i = keepMatches; i < matches; i++) rest.push([list[i * 2], list[i * 2 + 1]]);
+  rest.sort((x, y) => Math.min(+x[0], +x[1]) - Math.min(+y[0], +y[1]));
+  for (const p of rest) out.push(p[0], p[1]);
+  if (bye) out.push(bye);
+  return out;
+}
+
 function rebuildBracket() {
+  if (!voter.migration && !voter.done) {
+    // First load under the day-order engine: find the voter's exact position
+    // under the old rules, then pin the pivot there.
+    const probe = construct(null);
+    if (probe.champion) return probe;
+    voter.migration = { round: probe.roundNumber, matchIndex: probe.matchIndex };
+    saveVoter();
+  }
+  return construct(voter.migration || null);
+}
+
+function construct(mig) {
   const seed = hashString(voter.name.trim().toLowerCase());
   let round = firstRound(seed, voter.order || 'shuffle');
+  if (mig && mig.round === 1) round = hybridize(round, mig.matchIndex);
   let roundNumber = 1;
   let pickCursor = 0;
   const picks = voter.picks;
@@ -158,7 +194,7 @@ function rebuildBracket() {
       } else {
         // Corrupted history relative to manifest; truncate and resume from here.
         voter.picks = picks.slice(0, pickCursor);
-        return rebuildBracket();
+        return construct(mig);
       }
       pickCursor++;
     }
@@ -187,6 +223,10 @@ function rebuildBracket() {
     }
     round = bye ? winners.concat([bye]) : winners;
     roundNumber++;
+    if (mig) {
+      if (roundNumber > mig.round) round = sortChrono(round);
+      else if (roundNumber === mig.round) round = hybridize(round, mig.matchIndex);
+    }
   }
 
   return { champion: round[0], picksDone: picks.length, remaining: 0 };
