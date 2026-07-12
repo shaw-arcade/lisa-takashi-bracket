@@ -72,10 +72,15 @@ function loadVoter(name) {
     const raw = localStorage.getItem(voterKey(name));
     if (raw) {
       const v = JSON.parse(raw);
-      if (v && Array.isArray(v.picks)) return v;
+      if (v && Array.isArray(v.picks)) {
+        // Legacy voters mid-bracket keep their shuffled order so nothing resets;
+        // anyone who has not picked yet is upgraded to the chronological order.
+        if (!v.order) v.order = v.picks.length > 0 ? 'shuffle' : 'chrono';
+        return v;
+      }
     }
   } catch (e) { /* corrupted; start fresh */ }
-  return { name: name.trim(), picks: [], queue: [], champion: null, done: false, startedAt: Date.now() };
+  return { name: name.trim(), picks: [], queue: [], champion: null, done: false, order: 'chrono', startedAt: Date.now() };
 }
 
 function saveVoter() {
@@ -99,10 +104,22 @@ function bothBudget(roundLength, matches) {
   return Math.min(matches - 1, Math.max(2, Math.round(matches * 0.1)));
 }
 
-function firstRound(seed) {
+function firstRound(seed, order) {
   // Round 1 pairs similar photos so lookalikes battle each other first.
-  // The pairings are fixed for everyone; only their order (and sides) shuffle.
   if (!photoPairs) return seededShuffle(manifest, seed);
+
+  if (order === 'chrono') {
+    // Follow the wedding day: matchups run from morning prep to the last dance.
+    // Frame numbers are chronological, so sort pairs by their earlier frame.
+    const sorted = photoPairs
+      .map(p => (Number(p[0]) <= Number(p[1]) ? [p[0], p[1]] : [p[1], p[0]]))
+      .sort((x, y) => Number(x[0]) - Number(y[0]));
+    const round = [];
+    for (const p of sorted) round.push(p[0], p[1]);
+    return round;
+  }
+
+  // Legacy order for voters who started before the chronological update.
   const shuffled = seededShuffle(photoPairs, seed);
   const flip = mulberry32(seed ^ 0x9e3779b9);
   const round = [];
@@ -115,7 +132,7 @@ function firstRound(seed) {
 
 function rebuildBracket() {
   const seed = hashString(voter.name.trim().toLowerCase());
-  let round = firstRound(seed);
+  let round = firstRound(seed, voter.order || 'shuffle');
   let roundNumber = 1;
   let pickCursor = 0;
   const picks = voter.picks;
