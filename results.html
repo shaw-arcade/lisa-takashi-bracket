@@ -113,6 +113,7 @@ function render(data) {
   // Sheets strips leading zeros from frame numbers; photo files are 4-digit padded.
   const pad = id => String(id).padStart(4, '0');
   const photos = Object.entries(data.photos || {})
+    .filter(([id]) => /^\d+$/.test(String(id)))  // skip the 'OUT' drop-both marker
     .map(([id, s]) => ({ id: pad(id), wins: s.wins || 0, seen: s.seen || 0 }))
     .sort((a, b) => b.wins - a.wins || b.seen - a.seen || a.id.localeCompare(b.id));
 

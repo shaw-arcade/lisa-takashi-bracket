@@ -11,6 +11,7 @@ const LS_CURRENT = 'wpb_current_voter';
 const voterKey = (name) => 'wpb_voter_' + name.trim().toLowerCase();
 
 let manifest = [];      // all photo ids (strings)
+let photoPairs = null;  // round-1 similar-photo pairings [[a,b],...]
 let voter = null;       // { name, picks: [winnerId...], queue: [...], champion, done }
 let bracket = null;     // derived state, rebuilt from picks
 let currentPair = null; // { a, b, round, matchIndex, matchesInRound }
@@ -98,9 +99,23 @@ function bothBudget(roundLength, matches) {
   return Math.min(matches - 1, Math.max(2, Math.round(matches * 0.1)));
 }
 
+function firstRound(seed) {
+  // Round 1 pairs similar photos so lookalikes battle each other first.
+  // The pairings are fixed for everyone; only their order (and sides) shuffle.
+  if (!photoPairs) return seededShuffle(manifest, seed);
+  const shuffled = seededShuffle(photoPairs, seed);
+  const flip = mulberry32(seed ^ 0x9e3779b9);
+  const round = [];
+  for (const p of shuffled) {
+    if (flip() < 0.5) round.push(p[0], p[1]);
+    else round.push(p[1], p[0]);
+  }
+  return round;
+}
+
 function rebuildBracket() {
   const seed = hashString(voter.name.trim().toLowerCase());
-  let round = seededShuffle(manifest, seed);
+  let round = firstRound(seed);
   let roundNumber = 1;
   let pickCursor = 0;
   const picks = voter.picks;
@@ -119,6 +134,8 @@ function rebuildBracket() {
       if (w === 'BOTH') {
         winners.push(a, b);
         bothUsed++;
+      } else if (w === 'NEITHER') {
+        // Both photos eliminated; nobody advances from this match.
       } else if (w === a || w === b) {
         winners.push(w);
       } else {
@@ -137,6 +154,10 @@ function rebuildBracket() {
         remaining += Math.floor(len / 2);
         len = Math.ceil(len / 2);
       }
+      // Drop Both is allowed unless it could leave the round with no survivors:
+      // never on the last match of a round that has produced no winners and has no bye.
+      const neitherOk = round.length > 4 &&
+        !(m === matches - 1 && winners.length === 0 && !bye);
       return {
         round, roundNumber, matches, bye,
         matchIndex: m,
@@ -144,6 +165,7 @@ function rebuildBracket() {
         picksDone: picks.length,
         remaining,
         bothLeft: Math.max(0, budget - bothUsed),
+        neitherOk,
       };
     }
     round = bye ? winners.concat([bye]) : winners;
@@ -266,6 +288,7 @@ function renderMatch(skipRoundCheck) {
     bothBtn.disabled = st.bothLeft === 0;
     bothBtn.textContent = st.bothLeft === 0 ? 'No Keep Boths Left This Round' : 'Keep Both';
   }
+  $('neither-btn').style.display = st.neitherOk ? '' : 'none';
 
   const cardA = $('card-a'), cardB = $('card-b');
   cardA.classList.remove('picked', 'dimmed');
@@ -313,6 +336,23 @@ function keepBoth() {
   // Both photos advance and both get credit for a win.
   queueVote(currentPair.a, currentPair.b, currentPair.roundNumber, idx);
   queueVote(currentPair.b, currentPair.a, currentPair.roundNumber, idx);
+  saveVoter();
+  flushQueue(false);
+
+  setTimeout(() => { pickLock = false; renderMatch(); }, 220);
+}
+
+function dropBoth() {
+  if (pickLock || !currentPair || !currentPair.neitherOk) return;
+  pickLock = true;
+  $('card-a').classList.add('dimmed');
+  $('card-b').classList.add('dimmed');
+
+  const idx = voter.picks.length;
+  voter.picks.push('NEITHER');
+  // Both photos are eliminated; 'OUT' rows record the loss without crediting a win.
+  queueVote('OUT', currentPair.a, currentPair.roundNumber, idx);
+  queueVote('OUT', currentPair.b, currentPair.roundNumber, idx);
   saveVoter();
   flushQueue(false);
 
@@ -473,6 +513,7 @@ function init() {
 
   $('back-btn').addEventListener('click', goBack);
   $('both-btn').addEventListener('click', keepBoth);
+  $('neither-btn').addEventListener('click', dropBoth);
   $('save-btn').addEventListener('click', saveForLater);
 
   $('lightbox-close').addEventListener('click', closeLightbox);
@@ -486,13 +527,15 @@ function init() {
   // Periodic sync safety net.
   syncTimer = setInterval(() => flushQueue(true), 45000);
 
-  fetch('manifest.json')
-    .then(r => r.json())
-    .then(list => {
-      manifest = list.map(String);
-      if (sessionStorage.getItem(LS_GATE) === '1') routeAfterGate();
-      else show('gate');
-    });
+  Promise.all([
+    fetch('manifest.json').then(r => r.json()),
+    fetch('pairs.json').then(r => r.json()).catch(() => null),
+  ]).then(([list, pairs]) => {
+    manifest = list.map(String);
+    if (pairs && pairs.length) photoPairs = pairs.map(p => [String(p[0]), String(p[1])]);
+    if (sessionStorage.getItem(LS_GATE) === '1') routeAfterGate();
+    else show('gate');
+  });
 }
 
 document.addEventListener('DOMContentLoaded', init);
