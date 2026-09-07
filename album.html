@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>The Final Cut &middot; Lisa &amp; Takashi</title>
+<link rel="icon" type="image/png" sizes="32x32" href="brand/favicon-32.png">
+<link rel="apple-touch-icon" href="brand/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .album-wrap { max-width: 1180px; margin: 0 auto; padding: 32px 16px 120px; }
+  .album-head { text-align: center; margin-bottom: 18px; }
+  .sticky {
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(253,252,250,0.96); backdrop-filter: blur(6px);
+    border-bottom: 1px solid #e8e2d6; padding: 10px 0 8px; margin-bottom: 18px;
+  }
+  .who-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .who {
+    font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; font-weight: 500;
+    padding: 9px 14px; border: 1px solid #d9d3c8; background: transparent; color: var(--soft-ink); cursor: pointer;
+  }
+  .who.on { background: var(--ink); color: var(--ivory); border-color: var(--ink); }
+  .who.lisa.on { background: var(--lavender); border-color: var(--lavender); }
+  .who.takashi.on { background: #4f6b8a; border-color: #4f6b8a; }
+  .who.final.on { background: var(--gold); border-color: var(--gold); }
+  .count-row { display: flex; gap: 16px; justify-content: center; align-items: baseline; margin-top: 8px; flex-wrap: wrap; }
+  .count-big { font-family: var(--serif); font-size: 30px; }
+  .count-big.over { color: #a2542f; }
+  .count-big.exact { color: var(--gold); }
+  .count-lbl { font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--soft-ink); }
+  .chap-pills { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-top: 8px; }
+  .pill { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; padding: 4px 8px; border: 1px solid #e3ddd1; color: var(--soft-ink); background: #fff; cursor: pointer; }
+  .pill b { color: var(--ink); font-weight: 500; }
+
+  .method { max-width: 720px; margin: 0 auto 30px; border: 1px solid #e8e2d6; background: #fff; padding: 20px 22px; }
+  .method summary { cursor: pointer; font-family: var(--serif); font-size: 22px; list-style: none; }
+  .method summary::-webkit-details-marker { display: none; }
+  .method ol { margin: 12px 0 0 18px; font-size: 14px; line-height: 1.6; color: var(--ink); }
+  .method li { margin-bottom: 8px; }
+  .method .rule-list { margin-top: 12px; font-size: 13px; color: var(--soft-ink); line-height: 1.6; }
+
+  .chapter { margin: 42px 0 10px; }
+  .chapter-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; border-bottom: 1px solid #e8e2d6; padding-bottom: 8px; margin-bottom: 14px; }
+  .chapter-head h3 { font-family: var(--serif); font-size: 28px; font-weight: 500; }
+  .chapter-head .meta { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--soft-ink); }
+  .chapter-note { font-size: 13px; color: var(--soft-ink); margin: -6px 0 12px; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .tiles.bench { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+  .bench-title { font-size: 10px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--soft-ink); margin: 18px 0 8px; }
+
+  .tile { position: relative; cursor: pointer; background: #efece6; user-select: none; -webkit-user-select: none; }
+  .tile img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; opacity: 0.55; transition: opacity 0.2s, outline 0.2s; outline: 2px solid transparent; outline-offset: -2px; }
+  .tile.in img { opacity: 1; outline-color: var(--gold); }
+  .tile.in.lisa img { outline-color: var(--lavender); }
+  .tile.in.takashi img { outline-color: #4f6b8a; }
+  .tile .num { position: absolute; left: 6px; bottom: 6px; font-size: 10px; letter-spacing: 0.1em; padding: 2px 6px; background: rgba(43,42,40,0.72); color: #fff; }
+  .tile .star { position: absolute; left: 6px; top: 6px; font-size: 11px; color: var(--gold); background: rgba(255,255,255,0.85); padding: 1px 5px; letter-spacing: 0.05em; }
+  .tile .wins { position: absolute; right: 6px; bottom: 6px; font-size: 10px; padding: 2px 5px; background: rgba(255,255,255,0.85); color: var(--soft-ink); }
+  .tile .zoom { position: absolute; right: 6px; top: 6px; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.88); color: var(--ink); font-size: 14px; }
+  .tile .agree { position: absolute; left: 0; right: 0; top: 0; height: 4px; }
+  .tile .agree.both { background: var(--gold); }
+  .tile .agree.l { background: var(--lavender); }
+  .tile .agree.t { background: #4f6b8a; }
+  .tile .cap { display: none; }
+  .tile.in .check { position: absolute; right: 38px; top: 6px; width: 26px; height: 26px; border-radius: 50%; background: var(--gold); color: #fff; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+  .tile.in.lisa .check { background: var(--lavender); }
+  .tile.in.takashi .check { background: #4f6b8a; }
+
+  .legend { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; font-size: 11px; color: var(--soft-ink); margin-top: 8px; letter-spacing: 0.06em; }
+  .legend i { display: inline-block; width: 18px; height: 4px; vertical-align: middle; margin-right: 6px; }
+
+  .tools { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+  .tools .mini-btn, .tools button { font-family: var(--sans); font-size: 10.5px; letter-spacing: 0.2em; text-transform: uppercase; padding: 8px 12px; border: 1px solid #ddd7cb; background: transparent; color: var(--soft-ink); cursor: pointer; }
+  .tools button:hover { color: var(--ink); border-color: var(--ink); }
+
+  .export-wrap { margin-top: 50px; text-align: center; }
+  .export-box { width: 100%; max-width: 720px; height: 240px; font-family: ui-monospace, Menlo, monospace; font-size: 12px; line-height: 1.6; padding: 14px; border: 1px solid #e3ddd1; background: #fff; color: var(--ink); margin: 12px auto 0; display: block; }
+  .compare-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; max-width: 720px; margin: 14px auto 0; }
+  .compare-grid .stat { padding: 12px; }
+
+  /* lightbox */
+  .lb { position: fixed; inset: 0; background: rgba(20,19,18,0.96); z-index: 50; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 14px; }
+  .lb.open { display: flex; }
+  .lb img { max-width: 96vw; max-height: 74dvh; display: block; object-fit: contain; }
+  .lb .lb-cap { color: #e6e0d4; font-size: 14px; margin-top: 12px; text-align: center; max-width: 60ch; line-height: 1.5; }
+  .lb .lb-meta { color: #a09a8f; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; margin-top: 6px; }
+  .lb .lb-actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; justify-content: center; }
+  .lb .btn { width: auto; }
+  .lb .btn.ghost { color: #cfc9bf; border-color: #6f6a61; }
+  .lb .nav { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 64px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 30px; cursor: pointer; opacity: 0.7; }
+  .lb .nav.prev { left: 6px; } .lb .nav.next { right: 6px; }
+  .lb .close { position: absolute; top: 10px; right: 14px; color: #fff; font-size: 28px; cursor: pointer; opacity: 0.8; }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink); color: var(--ivory); padding: 10px 16px; font-size: 12px; letter-spacing: 0.12em; z-index: 60; opacity: 0; transition: opacity 0.25s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+  @media (max-width: 760px) {
+    .sticky { padding: 6px 0 6px; }
+    .who { padding: 7px 12px; font-size: 10px; }
+    .count-row { margin-top: 4px; gap: 10px; }
+    .count-big { font-size: 24px; }
+    .chap-pills { flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; padding: 0 4px 4px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+    .chap-pills::-webkit-scrollbar { display: none; }
+    .pill { white-space: nowrap; flex: 0 0 auto; }
+    .tools { gap: 6px; margin-top: 6px; }
+    .tools button { font-size: 9.5px; padding: 6px 9px; letter-spacing: 0.14em; }
+  }
+  @media (max-width: 560px) { .tiles { grid-template-columns: repeat(3, 1fr); gap: 6px; } .tiles.bench { grid-template-columns: repeat(4, 1fr); } .chapter-head h3 { font-size: 24px; } }
+</style>
+</head>
+<body>
+
+<section id="gate" class="screen active">
+  <div class="card">
+    <div class="monogram">L <span class="amp">&amp;</span> T</div>
+    <h2 class="serif">The Final Cut</h2>
+    <div class="rule"></div>
+    <p class="date">ALBUM REVIEW &middot; PRIVATE</p>
+    <div class="gate-form">
+      <input id="passcode" type="text" placeholder="Owner password" autocomplete="off" autocapitalize="characters">
+      <button id="gate-btn" class="btn">Enter</button>
+      <p id="gate-error" class="error hidden">That password is not quite right.</p>
+    </div>
+  </div>
+</section>
+
+<section id="album" class="screen">
+  <div class="album-wrap">
+    <div class="album-head">
+      <div class="monogram">L <span class="amp">&amp;</span> T</div>
+      <h2 class="serif">The Final Cut</h2>
+      <div class="rule gold"></div>
+      <p class="date">70 FOR THE ALBUM &middot; IN THE ORDER OF THE DAY</p>
+      <p class="lede small">Every frame below was reviewed. The starred ones are a proposed 70 that tell the whole day, with alternates under each chapter. Tap a photo to put it in or out of the set you are editing. Tap the magnifier to see it large.</p>
+    </div>
+
+    <details class="method" open>
+      <summary>How to pick your 70 together</summary>
+      <ol>
+        <li><b>Solo pass first, 20 minutes each.</b> Lisa picks as Lisa, Takashi picks as Takashi, on your own phones. Start from the proposed 70 if you like, then swap anything for a bench photo. No talking yet. That keeps one person from anchoring the other.</li>
+        <li><b>Send your picks.</b> Tap <i>Copy my link</i> and text it to the other person. Opening the link imports those picks on their device.</li>
+        <li><b>Together, switch to Final.</b> Tap <i>Start Final from agreements</i>. Anything you both chose is locked in. Only the disagreements need a conversation, and there are usually fewer than 20.</li>
+        <li><b>Argue for a photo, not against one.</b> For each disagreement the person who picked it says in one sentence what it adds that nothing else in the chapter does. If there is no answer, it goes.</li>
+        <li><b>Check the chapter counts</b> in the sticky bar. If one chapter is fat and another is empty, the album will feel lopsided even if every photo is great.</li>
+        <li><b>Copy the export</b> at the bottom into your 37 Frames favorites.</li>
+      </ol>
+      <div class="rule-list">
+        Rules of thumb: every chapter of the day appears. Every parent, grandparent and sibling appears at least once. No two photos of the same moment unless one is wide and one is close. Mix wide scene-setters, mid shots, and tight faces. If a photo only works because you remember the moment, it may not belong in the book. If a photo is a little imperfect but makes you both laugh, it does.
+      </div>
+    </details>
+
+    <div class="sticky">
+      <div class="who-row">
+        <button class="who lisa" data-who="lisa">Lisa</button>
+        <button class="who takashi" data-who="takashi">Takashi</button>
+        <button class="who final" data-who="final">Final</button>
+      </div>
+      <div class="count-row">
+        <div><span class="count-big" id="count">0</span> <span class="count-lbl">of 70</span></div>
+        <div class="count-lbl" id="who-lbl"></div>
+      </div>
+      <div class="chap-pills" id="pills"></div>
+      <div class="tools">
+        <button id="load-claude">Load the proposed 70</button>
+        <button id="from-agree">Start Final from agreements</button>
+        <button id="copy-link">Copy my link</button>
+        <button id="clear-set">Clear this set</button>
+      </div>
+    </div>
+    <div class="legend" style="margin:-8px 0 6px">Top edge of a photo: <span><i style="background:var(--gold)"></i>both picked</span><span><i style="background:var(--lavender)"></i>only Lisa</span><span><i style="background:#4f6b8a"></i>only Takashi</span></div>
+
+    <div id="chapters"></div>
+
+    <div class="export-wrap">
+      <h3 class="section-title">Where you stand</h3>
+      <div class="compare-grid">
+        <div class="stat"><div class="num" id="c-lisa">0</div><div class="lbl">Lisa picks</div></div>
+        <div class="stat"><div class="num" id="c-takashi">0</div><div class="lbl">Takashi picks</div></div>
+        <div class="stat"><div class="num" id="c-both">0</div><div class="lbl">You both picked</div></div>
+        <div class="stat"><div class="num" id="c-final">0</div><div class="lbl">In Final</div></div>
+      </div>
+      <h3 class="section-title" style="margin-top:34px">Export</h3>
+      <p class="lede small">Frame numbers for the set you are editing, in the order of the day. Copy this into your 37 Frames favorites.</p>
+      <textarea class="export-box" id="export" readonly></textarea>
+      <div class="tools"><button id="copy-export">Copy list</button></div>
+    </div>
+  </div>
+</section>
+
+<div class="lb" id="lb">
+  <div class="close" id="lb-close">&times;</div>
+  <div class="nav prev" id="lb-prev">&#8249;</div>
+  <div class="nav next" id="lb-next">&#8250;</div>
+  <img id="lb-img" alt="">
+  <div class="lb-cap" id="lb-cap"></div>
+  <div class="lb-meta" id="lb-meta"></div>
+  <div class="lb-actions">
+    <button class="btn" id="lb-toggle">Add to set</button>
+    <button class="btn ghost" id="lb-done">Close</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="album-data.js"></script>
+<script src="crowd-wins.js"></script>
+<script>
+const OWNER_PASSCODE = 'ALBUM70';
+const TOP_N = 70;
+const D = window.ALBUM_DATA;
+const WINS = window.CROWD_WINS || {};
+const $ = id => document.getElementById(id);
+
+// ---------- state ----------
+const SETS = ['lisa', 'takashi', 'final'];
+const LABEL = { lisa: 'Editing as Lisa', takashi: 'Editing as Takashi', final: 'Editing the Final 70' };
+let who = localStorage.getItem('album_who') || 'final';
+let booted = false;
+const picks = {};
+SETS.forEach(s => { try { picks[s] = new Set(JSON.parse(localStorage.getItem('album_' + s) || '[]')); } catch (e) { picks[s] = new Set(); } });
+function save(s) { localStorage.setItem('album_' + s, JSON.stringify([...picks[s]])); }
+
+// flat list in day order + lookup
+const ALL = [];          // [{id, chap, star, cap}]
+const BYID = {};
+D.chapters.forEach(ch => {
+  ch.picks.forEach(([id, cap]) => { const o = { id, chap: ch.id, star: true, cap }; ALL.push(o); BYID[id] = o; });
+  ch.bench.forEach(id => { if (!BYID[id]) { const o = { id, chap: ch.id, star: false, cap: '' }; ALL.push(o); BYID[id] = o; } });
+});
+const ORDER = id => ALL.findIndex(o => o.id === id);
+const CLAUDE70 = D.chapters.flatMap(ch => ch.picks.map(p => p[0]));
+
+// ---------- gate ----------
+function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); $(id).classList.add('active'); }
+function tryGate() {
+  const v = $('passcode').value.trim().toUpperCase().replace(/\s+/g, '');
+  if (v === OWNER_PASSCODE) { sessionStorage.setItem('album_ok', '1'); show('album'); boot(); }
+  else $('gate-error').classList.remove('hidden');
+}
+$('gate-btn').addEventListener('click', tryGate);
+$('passcode').addEventListener('keydown', e => { if (e.key === 'Enter') tryGate(); });
+if (sessionStorage.getItem('album_ok') === '1') { show('album'); boot(); }
+
+// ---------- import from link ----------
+function importFromHash() {
+  const h = location.hash.replace(/^#/, '');
+  if (!h) return;
+  const p = new URLSearchParams(h);
+  const s = p.get('set'), ids = (p.get('ids') || '').split(',').filter(x => /^\d{4}$/.test(x) && BYID[x]);
+  if (!SETS.includes(s) || !ids.length) return;
+  const name = s === 'final' ? 'the Final set' : s.charAt(0).toUpperCase() + s.slice(1) + "'s picks";
+  if (confirm('This link carries ' + ids.length + ' photos for ' + name + '. Import them on this device? (This replaces what is saved here for ' + name + '.)')) {
+    picks[s] = new Set(ids); save(s); who = s; localStorage.setItem('album_who', who);
+    toast('Imported ' + ids.length + ' photos for ' + name);
+  }
+  history.replaceState(null, '', location.pathname);
+}
+
+// ---------- render ----------
+function boot() {
+  if (booted) return; booted = true;
+  importFromHash();
+  renderChapters();
+  bindTools();
+  refresh();
+}
+
+function tile(o, bench) {
+  const el = document.createElement('div');
+  el.className = 'tile' + (bench ? ' bench-tile' : '');
+  el.dataset.id = o.id;
+  const w = WINS[o.id] || 0;
+  el.innerHTML =
+    '<div class="agree"></div>' +
+    '<img loading="lazy" src="thumbs/' + o.id + '.jpg" alt="Frame ' + o.id + '">' +
+    (o.star ? '<span class="star">&#9733; proposed</span>' : '') +
+    '<span class="check">&#10003;</span>' +
+    '<span class="zoom" title="View large">&#9906;</span>' +
+    '<span class="num">' + o.id + '</span>' +
+    (w ? '<span class="wins">' + w + 'w</span>' : '');
+  el.addEventListener('click', e => {
+    if (e.target.classList.contains('zoom')) { openLb(o.id); return; }
+    toggle(o.id);
+  });
+  return el;
+}
+
+function renderChapters() {
+  const root = $('chapters'); root.innerHTML = '';
+  D.chapters.forEach(ch => {
+    const sec = document.createElement('section');
+    sec.className = 'chapter'; sec.id = 'ch-' + ch.id;
+    sec.innerHTML = '<div class="chapter-head"><h3>' + ch.title + '</h3><span class="meta" id="meta-' + ch.id + '"></span></div>' +
+      '<p class="chapter-note">' + ch.note + '</p>';
+    const grid = document.createElement('div'); grid.className = 'tiles';
+    ch.picks.forEach(([id]) => grid.appendChild(tile(BYID[id], false)));
+    sec.appendChild(grid);
+    if (ch.bench.length) {
+      const bt = document.createElement('div'); bt.className = 'bench-title'; bt.textContent = 'Also consider';
+      sec.appendChild(bt);
+      const bg = document.createElement('div'); bg.className = 'tiles bench';
+      ch.bench.forEach(id => bg.appendChild(tile(BYID[id], true)));
+      sec.appendChild(bg);
+    }
+    root.appendChild(sec);
+  });
+}
+
+function toggle(id) {
+  const s = picks[who];
+  if (s.has(id)) s.delete(id); else s.add(id);
+  save(who); refresh();
+}
+
+function refresh() {
+  document.querySelectorAll('.who').forEach(b => b.classList.toggle('on', b.dataset.who === who));
+  $('who-lbl').textContent = LABEL[who];
+  const cur = picks[who];
+  const L = picks.lisa, T = picks.takashi;
+  document.querySelectorAll('.tile').forEach(el => {
+    const id = el.dataset.id;
+    el.classList.toggle('in', cur.has(id));
+    el.classList.toggle('lisa', who === 'lisa');
+    el.classList.toggle('takashi', who === 'takashi');
+    const a = el.querySelector('.agree');
+    a.className = 'agree' + (L.has(id) && T.has(id) ? ' both' : L.has(id) ? ' l' : T.has(id) ? ' t' : '');
+  });
+  const n = cur.size;
+  const cb = $('count'); cb.textContent = n;
+  cb.className = 'count-big' + (n > TOP_N ? ' over' : n === TOP_N ? ' exact' : '');
+  // chapter pills + metas
+  const pills = $('pills'); pills.innerHTML = '';
+  D.chapters.forEach(ch => {
+    const c = ALL.filter(o => o.chap === ch.id && cur.has(o.id)).length;
+    const p = document.createElement('span'); p.className = 'pill';
+    p.innerHTML = ch.title.replace('The ', '') + ' <b>' + c + '</b>/' + ch.target;
+    p.addEventListener('click', () => $('ch-' + ch.id).scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    pills.appendChild(p);
+    $('meta-' + ch.id).textContent = c + ' chosen · ' + ch.target + ' suggested';
+  });
+  // compare
+  const both = [...L].filter(x => T.has(x)).length;
+  $('c-lisa').textContent = L.size; $('c-takashi').textContent = T.size; $('c-both').textContent = both; $('c-final').textContent = picks.final.size;
+  // export
+  const list = [...cur].sort((a, b) => ORDER(a) - ORDER(b));
+  $('export').value = list.length ? list.map((id, i) => (i + 1) + '. Frame ' + id + (BYID[id] && BYID[id].cap ? '  -  ' + BYID[id].cap : '')).join('\n') : 'Nothing chosen yet in this set.';
+}
+
+function bindTools() {
+  document.querySelectorAll('.who').forEach(b => b.addEventListener('click', () => { who = b.dataset.who; localStorage.setItem('album_who', who); refresh(); }));
+  $('load-claude').addEventListener('click', () => {
+    if (picks[who].size && !confirm('Replace the ' + picks[who].size + ' photos in this set with the proposed 70?')) return;
+    picks[who] = new Set(CLAUDE70); save(who); refresh(); toast('Loaded the proposed 70');
+  });
+  $('from-agree').addEventListener('click', () => {
+    const both = [...picks.lisa].filter(x => picks.takashi.has(x));
+    if (!both.length) { toast('No agreements yet. Both of you need picks first.'); return; }
+    if (picks.final.size && !confirm('Replace the current Final set with the ' + both.length + ' photos you both picked?')) return;
+    picks.final = new Set(both); save('final'); who = 'final'; localStorage.setItem('album_who', who); refresh();
+    toast(both.length + ' agreed photos locked into Final');
+  });
+  $('copy-link').addEventListener('click', () => {
+    const ids = [...picks[who]].sort((a, b) => ORDER(a) - ORDER(b)).join(',');
+    const url = location.origin + location.pathname + '#set=' + who + '&ids=' + ids;
+    copy(url, 'Link copied. Text it to the other person.');
+  });
+  $('clear-set').addEventListener('click', () => {
+    if (!picks[who].size) return;
+    if (confirm('Clear all ' + picks[who].size + ' photos from this set?')) { picks[who] = new Set(); save(who); refresh(); }
+  });
+  $('copy-export').addEventListener('click', () => copy($('export').value, 'List copied'));
+  // lightbox
+  $('lb-close').addEventListener('click', closeLb); $('lb-done').addEventListener('click', closeLb);
+  $('lb-prev').addEventListener('click', () => stepLb(-1)); $('lb-next').addEventListener('click', () => stepLb(1));
+  $('lb-toggle').addEventListener('click', () => { toggle(lbId); updateLb(); });
+  document.addEventListener('keydown', e => {
+    if (!$('lb').classList.contains('open')) return;
+    if (e.key === 'Escape') closeLb(); else if (e.key === 'ArrowLeft') stepLb(-1); else if (e.key === 'ArrowRight') stepLb(1);
+    else if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle(lbId); updateLb(); }
+  });
+  let tx = 0;
+  $('lb').addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
+  $('lb').addEventListener('touchend', e => { const dx = e.changedTouches[0].clientX - tx; if (Math.abs(dx) > 50) stepLb(dx < 0 ? 1 : -1); }, { passive: true });
+}
+
+function copy(text, msg) {
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => toast(msg), () => fallbackCopy(text, msg));
+  else fallbackCopy(text, msg);
+}
+function fallbackCopy(text, msg) {
+  const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); toast(msg); } catch (e) { prompt('Copy this:', text); }
+  document.body.removeChild(ta);
+}
+let toastT;
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2200); }
+
+// ---------- lightbox ----------
+let lbId = null;
+function openLb(id) { lbId = id; updateLb(); $('lb').classList.add('open'); }
+function closeLb() { $('lb').classList.remove('open'); }
+function stepLb(d) { const i = ORDER(lbId); const j = (i + d + ALL.length) % ALL.length; lbId = ALL[j].id; updateLb(); }
+function updateLb() {
+  const o = BYID[lbId];
+  $('lb-img').src = 'photos/' + lbId + '.jpg';
+  $('lb-cap').textContent = o.cap || '';
+  const ch = D.chapters.find(c => c.id === o.chap);
+  const w = WINS[lbId] || 0;
+  $('lb-meta').textContent = 'Frame ' + lbId + ' · ' + ch.title + (o.star ? ' · proposed' : '') + (w ? ' · ' + w + ' playoff wins' : '');
+  const inSet = picks[who].has(lbId);
+  $('lb-toggle').textContent = inSet ? 'Remove from ' + (who === 'final' ? 'Final' : who.charAt(0).toUpperCase() + who.slice(1)) : 'Add to ' + (who === 'final' ? 'Final' : who.charAt(0).toUpperCase() + who.slice(1));
+  // preload neighbors
+  const i = ORDER(lbId);
+  [1, -1].forEach(d => { const n = ALL[(i + d + ALL.length) % ALL.length]; const im = new Image(); im.src = 'photos/' + n.id + '.jpg'; });
+}
+</script>
+</body>
+</html>
